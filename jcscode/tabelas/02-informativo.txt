@@ -1,0 +1,211 @@
+agora temos um script para rodar uma IA, preciso que melhore e deixe completo  # CONTEXTO E OBJETIVO
+Atue como um Engenheiro de Software Sênior Especialista em NestJS e PostgreSQL. Sua tarefa é construir uma API de Autenticação (Auth Service) completa, pronta para produção, seguindo a arquitetura "Backend for Frontend" (BFF).
+
+O banco de dados já está modelado. Vou fornecer o script SQL de criação (schema `auth` e `extensions`). O sistema deve se conectar a esse banco existente.
+o banco  local em postgresql://jcscode:123456@localhost:5432/jcscode
+# STACK TECNOLÓGICO
+- **Framework:** NestJS (v10+)
+- **Linguagem:** TypeScript
+- **Database:** PostgreSQL
+- **ORM:**    TypeORM
+- **Email:** Nodemailer + Handlebars (para templates HTML)
+- **Validação:** class-validator / class-transformer
+- **Doc:** Swagger (OpenAPI)
+- **Testes:** Jest (Unitários e E2E)
+
+# 1. CONFIGURAÇÃO DE EMAIL (CRÍTICO)
+Você deve implementar um `MailModule` global usando `nodemailer`.
+As credenciais SMTP são de produção e DEVEM ser configuradas via variáveis de ambiente (.env), mas utilize os valores abaixo para configurar a lógica agora:
+
+- **Host:** smtp.hostinger.com (Hostinger)
+- **Port:** 465 (Secure/SSL)
+- **User:** no-reply@jcscode.com
+- **Pass:** 143300Ju=
+- **From:** "JCS Code Auth" <no-reply@jcscode.com>
+
+**Requisitos do Email:**
+1.  Criar templates HTML elegantes (com logo da JCS Code) para:
+    -   Verificação de Conta (Código de 6 dígitos).
+    -   Recuperação de Senha (Link com token UUID).
+    -   Aviso de Login Suspeito.
+2.  O serviço de email deve ter tratamento de erro (try/catch) para não derrubar a API se o SMTP falhar.
+
+# 2. INTEGRAÇÃO COM BANCO DE DADOS
+O Schema já existe. Não use `synchronize: true`. Use o schema `auth` e `extensions`.
+- Mapeie as entidades: `User`, `Session`, `Role`, `VerificationToken`, `LoginHistory`, `OAuthProvider`.
+- O campo `id` é UUID gerado pelo banco (`uuid_generate_v4()`).
+
+# 3. REGRAS DE NEGÓCIO (ENDPOINTS)
+Implemente os Controllers e Services para cobrir os seguintes cenários (Baseado na especificação JSON/MD fornecida):
+
+1.  **Auth Pública:**
+    -   `POST /signup`: Cria user, gera token numérico (6 dígitos), envia email.
+    -   `POST /signin`: Valida senha (bcrypt), gera JWT Access Token + Refresh Token, cria sessão no DB.
+    -   `POST /verify-email`: Valida o código de 6 dígitos.
+    -   `POST /forgot-password`: Gera token UUID, envia link por email.
+
+2.  **Auth Privada (Guard JWT):**
+    -   `GET /me`: Retorna dados do usuário + Roles.
+    -   `POST /signout`: Invalida sessão no banco.
+    -   `GET /me/sessions`: Lista sessões ativas.
+
+3.  **Segurança:**
+    -   **Rate Limiting:** Implementar `ThrottlerModule` para evitar brute-force no login (5 tentativas/min).
+    -   **Audit:** Todo login (sucesso ou falha) DEVE salvar registro na tabela `auth.login_history`.
+    -   **Senha:** Use `bcrypt` com salt 10 ou 12.
+
+# 4. TESTES AUTOMATIZADOS (QA)
+Crie um arquivo de teste E2E (`auth.e2e-spec.ts`) que simule o fluxo completo do usuário:
+1.  Cadastrar usuário (POST /signup).
+2.  Simular a leitura do token no banco (já que não podemos ler o email real no teste).
+3.  Verificar conta (POST /verify-email).
+4.  Fazer Login (POST /signin) e receber JWT.
+5.  Acessar rota protegida (GET /me) com o JWT.
+6.  Fazer Logout (POST /signout).
+
+# ENTREGÁVEIS
+Gere o código passo a passo:
+1.  O arquivo `.env.example` com as credenciais de e-mail.
+2.  O `app.module.ts` configurado.
+3.  O `prisma.schema` (ou Entities TypeORM) mapeando o SQL fornecido.
+4.  O `MailService` configurado com o SMTP da Hostinger.
+5.  Os `AuthService` e `AuthController`.
+
+---
+**[AQUI VOCÊ COLA O SCRIPT SQL DO BANCO DE DADOS QUE CRIAMOS]**
+---
+**[AQUI VOCÊ COLA A LISTA DE ENDPOINTS/JSON QUE CRIAMOS]**
+
+
+# Banco de Dados
+DATABASE_URL="postgresql://jcscode:123456@localhost:5432/jcscode?schema=auth"
+
+# Configuração de Email (Hostinger)
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_USER=no-reply@jcscode.com
+MAIL_PASS="143300Ju="
+MAIL_FROM="Equipe JCS Code <no-reply@jcscode.com>"
+
+# Segurança JWT
+JWT_SECRET="crie_um_segredo_super_complexo_aqui"
+JWT_EXPIRATION="15m"
+JWT_REFRESH_SECRET="outro_segredo_complexo_aqui"
+JWT_REFRESH_EXPIRATION="7d"
+
+
+
+
+
+
+# ROLE
+Atue como um Engenheiro de Software Sênior (Tech Lead) especialista em NestJS v10, TypeScript, Prisma ORM e PostgreSQL.
+
+# OBJETIVO
+Gerar o código fonte de uma API RESTful completa ("JCS Code Auth System").
+O Banco de dados JÁ EXISTE. Você NÃO deve criar migrations. Você deve usar o `schema.prisma` mapeado a partir do SQL fornecido.
+
+# INFRAESTRUTURA
+1. **Framework:** NestJS (Modular).
+2. **ORM:** Prisma (com tabelas mapeadas para o schema `auth`).
+3. **Email:** Nodemailer + Handlebars (SMTP Hostinger).
+4. **Docs:** Swagger (OpenAPI) configurado em `/api/docs`.
+5. **Security:** Passport-JWT, BCrypt, Throttler (Rate Limit), Helmet.
+
+# 1. CONEXÕES EXTERNAS (PREENCHER .ENV)
+Configure o `ConfigModule` para usar estas variáveis:
+- DATABASE_URL="postgresql://jcscode:SENHA@localhost:5432/jcscode?schema=auth"
+- MAIL_HOST="smtp.hostinger.com"
+- MAIL_PORT=465
+- MAIL_USER="no-reply@jcscode.com"
+- MAIL_PASS="143300Ju="
+- JWT_SECRET="SUPER_SECRET_KEY"
+- JWT_EXPIRES="15m"
+- REFRESH_SECRET="SUPER_REFRESH_KEY"
+- REFRESH_EXPIRES="7d"
+
+# 2. ESCOPO DE ENDPOINTS (IMPLEMENTAÇÃO OBRIGATÓRIA)
+Você deve implementar Controllers e Services para cobrir EXATAMENTE a lista abaixo. Não omita nenhum endpoint. Use DTOs com `class-validator`.
+
+## MÓDULO: AUTH (Público)
+POST   /auth/signup                     (Cria user, gera token 6 dígitos, envia email)
+POST   /auth/signin                     (Login senha. Retorna JWT + Refresh. Cria Sessão)
+POST   /auth/refresh                    (Renova AccessToken via RefreshToken)
+POST   /auth/verify-email               (Valida código de 6 dígitos)
+POST   /auth/verify-email/resend        (Reenvia código novo)
+POST   /auth/forgot-password            (Gera token UUID reset-pass, envia email)
+POST   /auth/reset-password             (Recebe token + nova senha)
+GET    /auth/check-availability         (Query param: email ou username. Retorna bool)
+POST   /auth/magic-link                 (Solicita login sem senha via email)
+POST   /auth/magic-link/verify          (Troca token do link por Sessão)
+
+## MÓDULO: USERS (Contexto do Usuário Logado - "Me")
+GET    /users/me                        (Perfil completo, roles e permissions)
+PATCH  /users/me                        (Atualizar avatar, fullname, telefone)
+PATCH  /users/me/password               (Trocar senha. Exige atual)
+POST   /users/me/email                  (Solicitar troca de email. Requer validação)
+DELETE /users/me                        (Soft delete da conta)
+POST   /users/me/consent                (Registra aceite de termos LGPD)
+GET    /users/me/security-logs          (Histórico de segurança pessoal)
+GET    /users/me/login-history          (Histórico de logins pessoal)
+
+## MÓDULO: MFA (2FA)
+POST   /auth/mfa/setup                  (Inicia setup, retorna QR Code/Secret)
+POST   /auth/mfa/enable                 (Valida TOTP e ativa na conta)
+DELETE /auth/mfa/disable                (Desativa. Exige senha)
+POST   /auth/mfa/verify                 (Endpoint para login de 2ª etapa)
+GET    /auth/mfa/backup-codes           (Visualizar códigos. Exige senha)
+POST   /auth/mfa/backup-codes           (Regerar códigos novos)
+
+## MÓDULO: SESSIONS (Dispositivos)
+GET    /sessions                        (Listar sessões ativas do usuário)
+DELETE /sessions/:id                    (Revoga uma sessão específica)
+DELETE /sessions                        (Revoga todas as sessões, exceto a atual)
+
+## MÓDULO: OAUTH (Social Login)
+GET    /auth/oauth/google               (Redireciona p/ Google)
+GET    /auth/oauth/google/callback      (Callback, login/criação de conta)
+GET    /auth/oauth/github               (Redireciona p/ Github)
+GET    /auth/oauth/github/callback      (Callback)
+GET    /auth/oauth/connections          (Listar contas vinculadas)
+DELETE /auth/oauth/connections/:provider (Desvincular conta social)
+
+## MÓDULO: ADMIN USERS (Requer Role 'admin')
+GET    /admin/users                     (Lista paginada de usuários)
+POST   /admin/users                     (Criar usuário manualmente)
+GET    /admin/users/:id                 (Ver detalhes sensíveis de um user)
+PATCH  /admin/users/:id                 (Editar dados de um user)
+DELETE /admin/users/:id                 (Soft delete de user)
+POST   /admin/users/:id/lock            (Bloquear usuário)
+POST   /admin/users/:id/unlock          (Desbloquear usuário)
+POST   /admin/users/:id/resend-verify   (Forçar envio de email verificação)
+POST   /admin/users/:id/reset-password  (Forçar envio de email reset senha)
+
+## MÓDULO: ADMIN ROLES (RBAC)
+GET    /admin/roles                     (Listar roles)
+POST   /admin/roles                     (Criar role)
+GET    /admin/roles/:id                 (Detalhe role)
+PUT    /admin/roles/:id                 (Atualizar role)
+DELETE /admin/roles/:id                 (Deletar role)
+POST   /admin/users/:id/roles           (Atribuir role a usuário)
+DELETE /admin/users/:id/roles/:roleId   (Remover role de usuário)
+
+## MÓDULO: ADMIN SYSTEM & LOGS
+GET    /admin/stats                     (Dashboard: Total users, active sessions, etc)
+GET    /admin/logs/login                (Histórico global de logins)
+GET    /admin/logs/security             (Histórico global de segurança)
+GET    /admin/maintenance/status        (Status atual do sistema)
+POST   /admin/maintenance/cleanup       (Rodar limpeza de tokens expirados)
+POST   /admin/sessions/revoke-all       (Logout global em todos os usuários)
+
+# 3. REGRAS DE IMPLEMENTAÇÃO
+1.  **Prisma Schema:** Mapeie as tabelas existentes (`auth.users`, `auth.sessions`, etc). Não crie tabelas novas.
+2.  **Swagger:** Use `@ApiTags`, `@ApiOperation` e `@ApiResponse` em TODOS os endpoints.
+3.  **Rate Limit:** Use `ThrottlerGuard` nas rotas públicas (/auth/*).
+4.  **Email:** O serviço de email deve usar `nodemailer` com filas ou processamento assíncrono simples. Se o email falhar, não deve travar o login, mas deve logar o erro.
+
+---
+**[CONTEXTO SQL]**
+(Abaixo está o script SQL que já rodamos no banco. Use isso para saber os nomes exatos dos campos para o Prisma Model)
+
+[COLE AQUI O SCRIPT SQL DAS TABELAS] mas mantenha os 76 endpoint  ou mais em anexo tem tudo que vc precisa desde banco a tabelas emfim me ajude a deixar o prompt completo e detalhado  se for preciso pode colocar mais endpoint  
