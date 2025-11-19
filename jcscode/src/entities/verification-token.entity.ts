@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'verification_tokens', schema: 'auth' })
 export class VerificationToken {
@@ -6,7 +12,8 @@ export class VerificationToken {
   @Column({ type: 'uuid' }) user_id!: string;
   @Column({ type: 'varchar', length: 255, unique: true }) token!: string;
   @Index()
-  @Column({ type: 'varchar', length: 255, unique: true }) token_hash!: string;
+  @Column({ type: 'varchar', length: 255, unique: true })
+  token_hash!: string;
   @Column({ type: 'varchar', length: 50 }) token_type!: string;
   @Column({ type: 'timestamptz' }) expires_at!: Date;
   @Column({ type: 'boolean', default: false }) is_used!: boolean;

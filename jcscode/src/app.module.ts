@@ -8,11 +8,21 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
+import { UsersModule } from './users/users.module';
+import { SessionsModule } from './sessions/sessions.module';
+import { MfaModule } from './mfa/mfa.module';
+import { OauthModule } from './oauth/oauth.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{ ttl: parseInt(process.env.THROTTLE_TTL ?? '60'), limit: parseInt(process.env.THROTTLE_LIMIT ?? '5') }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: parseInt(process.env.THROTTLE_TTL ?? '60'),
+        limit: parseInt(process.env.THROTTLE_LIMIT ?? '5'),
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.PGHOST ?? '127.0.0.1',
@@ -26,10 +36,15 @@ import { MailModule } from './mail/mail.module';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'test', 'html'),
-      serveRoot: '/vi',
+      serveRoot: '/v1',
     }),
     AuthModule,
     MailModule,
+    UsersModule,
+    SessionsModule,
+    MfaModule,
+    OauthModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
