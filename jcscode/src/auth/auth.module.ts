@@ -20,5 +20,6 @@ import { LoginHistory } from '../entities/login-history.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
+  exports: [JwtModule, PassportModule, JwtStrategy],
 })
 export class AuthModule {}

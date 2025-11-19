@@ -7,11 +7,13 @@ import { UserRole } from '../entities/user-role.entity';
 import { Role } from '../entities/role.entity';
 import { LoginHistory } from '../entities/login-history.entity';
 import { PassportModule } from '@nestjs/passport';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Session, UserRole, Role, LoginHistory]),
     PassportModule,
+    AuthModule,
   ],
   controllers: [UsersController],
 })
